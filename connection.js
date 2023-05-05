@@ -4,10 +4,9 @@ const mysql = require('mysql2');
 const connection = mysql.createConnection(
     {
         host: 'localhost',
-        // Enter your MYSQL username
+        port: 3306,
         user: 'root',
-        // Enter your MYSQL password
-        password: 'sqlkrisp',
+        password: process.env.PASSWORD,
         database: 'employee_db'
     },
     console.log('Connected to the employee_db database.')
