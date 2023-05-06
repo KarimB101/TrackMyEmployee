@@ -53,8 +53,7 @@ function menu() {
                 case 'View all roles':
                     viewRoles()
                     break;
-
-                case "View all employees":
+                case "View all Employees":
                     viewEmployees()
                     break;
 
@@ -83,7 +82,7 @@ function menu() {
 
 function viewDepartments() {
 
-    db.query('SELECT * FROM department', (error, data) => {
+    db.query('SELECT * FROM departments', (error, data) => {
         console.table(data)
         menu()
     })
@@ -100,7 +99,7 @@ function addDepartment() {
         ])
         .then(res => {
 
-            db.query('INSERT INTO department (name) VALUES (?)', res.deptName, (error, data) => {
+            db.query('INSERT INTO departments (name) VALUES (?)', res.deptName, (error, data) => {
                 console.log('Department successfully added!')
                 menu()
             })
@@ -109,14 +108,14 @@ function addDepartment() {
 
 function viewRoles() {
 
-    db.query('SELECT roles.id, roles.title, department.name AS department, roles.salary FROM roles LEFT JOIN department ON roles.department_id = department.id;', (error, data) => {
+    db.query('SELECT roles.id, roles.title, departments.name AS department, roles.salary FROM roles LEFT JOIN departments ON roles.departments_id = departments.id;', (error, data) => {
         console.table(data)
         menu()
     })
 };
 
 function addRole() {
-    db.promise().query('SELECT * FROM department')
+    db.promise().query('SELECT * FROM departments')
         .then(([data]) => {
             const deptChoices = data.map(({ id, name }) => ({ name: name, value: id }))
             inquirer
@@ -143,7 +142,7 @@ function addRole() {
 
                 .then(res => {
 
-                    db.query('INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)', [res.title, res.salary, res.department], (error, data) => {
+                    db.query('INSERT INTO roles (title, salary, departments_id) VALUES (?, ?, ?)', [res.title, res.salary, res.departments], (error, data) => {
                         console.log('roles successfully added!')
                         menu()
                     })
@@ -153,12 +152,11 @@ function addRole() {
 
 
 function viewEmployees() {
-    db.query("SELECT employee.id, employee.first_name, employee.last_name, roles.title, department.name AS department, roles.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN roles ON employee.role_id = roles.id LEFT JOIN department ON roles.department_id = department.id LEFT JOIN employee manager ON manager.id = employee.manager_id;", (error, data) => {
+    db.query("SELECT employees.id, employees.first_name, employees.last_name, roles.title, department.name AS department, roles.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employees LEFT JOIN roles ON employees.role_id = roles.id LEFT JOIN department ON roles.department_id = department.id LEFT JOIN employees manager ON manager.id = employees.manager_id;", (error, data) => {
         console.table(data)
         menu()
     })
 };
-
 
 function addEmployee() {
     inquirer
@@ -199,7 +197,7 @@ function addEmployee() {
                         .then(res => {
                             const roles = res.roles
 
-                            db.promise().query('SELECT * FROM employee WHERE manager_id IS NULL')
+                            db.promise().query('SELECT * FROM employees WHERE manager_id IS NULL')
                                 .then(([data]) => {
                                     const managerChoices = data.map(({ first_name, last_name, id }) => ({
                                         name: `${first_name} ${last_name}`,
@@ -218,7 +216,7 @@ function addEmployee() {
                                         ])
 
                                         .then(res => {
-                                            db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [firstName, LastName, roles, res.manager], (error, data) => {
+                                            db.query('INSERT INTO employees (first_name, last_name, roles_id, manager_id) VALUES (?, ?, ?, ?)', [firstName, LastName, roles, res.manager], (error, data) => {
                                                 console.log('Employee successfully added!')
                                                 menu()
                                             })
@@ -231,10 +229,10 @@ function addEmployee() {
 
 function updateEmployee() {
 
-    db.promise().query('SELECT * FROM employee')
+    db.promise().query('SELECT * FROM employees ')
         .then(([data]) => {
 
-            const employeeChoices = data.map(({ id, first_name, last_name }) =>
+            const employeesChoices = data.map(({ id, first_name, last_name }) =>
             ({
                 name: `${first_name} ${last_name}`,
                 value: id
@@ -242,14 +240,14 @@ function updateEmployee() {
             inquirer
                 .prompt([
                     {
-                        name: 'employee',
+                        name: 'employees',
                         message: "Which employee would you like to update?",
                         type: 'list',
-                        choices: employeeChoices
+                        choices: employeesChoices
                     }
                 ])
                 .then(res => {
-                    const employee = res.employee
+                    const employees = res.employees
 
                     db.promise().query('SELECT * FROM roles')
                         .then(([data]) => {
@@ -269,7 +267,7 @@ function updateEmployee() {
                                 ]).then(res => {
                                     const roles = res.roles
 
-                                    db.promise().query('SELECT * FROM employee WHERE manager_id IS NULL')
+                                    db.promise().query('SELECT * FROM employees WHERE manager_id IS NULL')
                                         .then(([data]) => {
 
                                             const managerChoices = data.map(({ first_name, last_name, id }) => ({
@@ -287,7 +285,7 @@ function updateEmployee() {
                                                     }
                                                 ]).then(res => {
 
-                                                    db.query('UPDATE employee (employee, role_id, manager_id) values (?, ?, ?)', [employee, roles, res.manager], function (err, data) {
+                                                    db.query('UPDATE employees (employees, roles_id, manager_id) values (?, ?, ?)', [employees, roles, res.manager], function (err, data) {
                                                         console.log('Employee update successful!')
                                                         menu()
                                                     })
